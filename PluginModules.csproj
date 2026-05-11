@@ -89,7 +89,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\FajneConfigurables\FajneConfigurables.csproj" />
+      <ProjectReference Include="\FajneConfigurables\FajneConfigurables.csproj" />
     </ItemGroup>
     
     <ItemGroup>
