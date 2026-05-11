@@ -1,0 +1,113 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net48</TargetFramework>
+        <LangVersion>latest</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+    
+    <PropertyGroup>
+        <Authors>michcio</Authors>
+        <Copyright>Copyright © 2026 michcio. All rights reserved.</Copyright>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DebugType>embedded</DebugType>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="BepInEx.AssemblyPublicizer.MSBuild" Version="0.4.2">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Lib.Harmony" Version="2.4.2"/>
+        <PackageReference Include="Northwood.LabAPI" Version="1.1.6.1"/>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <Reference Include="Assembly-CSharp" Publicize="true">
+            <HintPath>$(SL_REFERENCES)\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp-firstpass">
+            <HintPath>$(SL_REFERENCES)\Assembly-CSharp-firstpass.dll</HintPath>
+        </Reference>
+        <Reference Include="BouncyCastle.Cryptography">
+            <HintPath>$(SL_REFERENCES)\BouncyCastle.Cryptography.dll</HintPath>
+        </Reference>
+        <Reference Include="Caress">
+            <HintPath>$(SL_REFERENCES)\Caress.dll</HintPath>
+        </Reference>
+        <Reference Include="CommandSystem.Core">
+            <HintPath>$(SL_REFERENCES)\CommandSystem.Core.dll</HintPath>
+        </Reference>
+        <Reference Include="CustomPasses">
+            <HintPath>$(SL_REFERENCES)\CustomPasses.dll</HintPath>
+        </Reference>
+        <Reference Include="DnsClient">
+            <HintPath>$(SL_REFERENCES)\DnsClient.dll</HintPath>
+        </Reference>
+        <Reference Include="Facepunch.Steamworks.Win64">
+            <HintPath>$(SL_REFERENCES)\Facepunch.Steamworks.Win64.dll</HintPath>
+        </Reference>
+        <Reference Include="Interop">
+            <HintPath>$(SL_REFERENCES)\Interop.dll</HintPath>
+        </Reference>
+        <Reference Include="Mirror">
+            <HintPath>$(SL_REFERENCES)\Mirror.dll</HintPath>
+        </Reference>
+        <Reference Include="Mirror.Components">
+            <HintPath>$(SL_REFERENCES)\Mirror.Components.dll</HintPath>
+        </Reference>
+        <Reference Include="NorthwoodLib">
+            <HintPath>$(SL_REFERENCES)\NorthwoodLib.dll</HintPath>
+        </Reference>
+        <Reference Include="Pooling">
+            <HintPath>$(SL_REFERENCES)\Pooling.dll</HintPath>
+        </Reference>
+        <Reference Include="Snake">
+            <HintPath>$(SL_REFERENCES)\Snake.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine">
+            <HintPath>$(SL_REFERENCES)\UnityEngine.dll</HintPath>
+        </Reference>
+        <Reference Include="mscorlib">
+            <HintPath>$(SL_REFERENCES)\mscorlib.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(SL_REFERENCES)\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.PhysicsModule">
+            <HintPath>$(SL_REFERENCES)\UnityEngine.PhysicsModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\FajneConfigurables\FajneConfigurables.csproj" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Features\" />
+    </ItemGroup>
+
+    <Target Name="CopyDLLS" AfterTargets="Build">
+        <PropertyGroup>
+            <BuildFolder>$(ProjectDir)\BUILD\$(Configuration)</BuildFolder>
+        </PropertyGroup>
+
+        <ItemGroup>
+            <MyOutputs Include="$(TargetDir)$(TargetName).*"/>
+        </ItemGroup>
+
+        <Copy
+                SourceFiles="@(MyOutputs)"
+                DestinationFolder="$(BuildFolder)"/>
+    </Target>
+
+</Project>

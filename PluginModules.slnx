@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="../FajneConfigurables/FajneConfigurables.csproj" />
+  <Project Path="PluginModules.csproj" />
+</Solution>
