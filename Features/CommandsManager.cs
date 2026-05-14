@@ -25,18 +25,6 @@ public sealed class CommandsManager
     public Module Module { get; }
     public ModuleLog ModuleLog => Module.ModuleLog;
 
-    public bool CommandsEnabled { get; internal set; } = false;
-
-    public string CommandsNamespace
-    {
-        get
-        {
-            field ??= Module.GetType().Namespace;
-            return field!;
-        }
-        internal set;
-    }
-
     /// <summary>
     ///     <see cref="IReadOnlyCollection{T}" /> zarejestrowanych komend <see cref="RemoteAdminCommandHandler" />
     /// </summary>
@@ -54,11 +42,6 @@ public sealed class CommandsManager
 
     internal void RegisterCommands()
     {
-        if (!CommandsEnabled)
-        {
-            return;
-        }
-
         foreach (Type type in GetCommandTypes())
         {
             ModuleCommandAttribute attr = type.GetCustomAttribute<ModuleCommandAttribute>();
