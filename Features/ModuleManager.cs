@@ -33,7 +33,7 @@ public static class ModuleManager
     ///     Moduły tylko do oczytu
     /// </summary>
     // ReSharper disable once ReturnTypeCanBeEnumerable.Global
-    public static IReadOnlyCollection<Module> Modules => Modules;
+    public static IReadOnlyCollection<Module> Modules => ModulesInternal;
 
 
     /// <summary>
@@ -45,21 +45,20 @@ public static class ModuleManager
     /// <summary>
     ///     No wszystko
     /// </summary>
-    public static void PrepareAndEnableAll()
+    public static void PrepareAndEnableAll(Assembly? assembly = null, Func<bool>? debugProvider = null)
     {
-        RegisterEvents();
-        RegisterModules();
-        EnableModules();
+        RegisterModules(assembly, debugProvider);
+        EnableModules(assembly);
     }
 
     /// <summary>
     ///     Rejestruje wszystkie moduły
     /// </summary>
-    public static void RegisterModules(Func<bool>? debugProvider = null)
+    public static void RegisterModules(Assembly? assembly = null, Func<bool>? debugProvider = null)
     {
         ModulesInternal.Clear();
         Types.Clear();
-        Assembly assembly = Assembly.GetCallingAssembly();
+        assembly ??= Assembly.GetCallingAssembly();
         IEnumerable<Type> types = assembly.GetTypes()
             .Where(t => t.IsSubclassOf(typeof(Module)) && !t.IsAbstract &&
                         t.GetCustomAttribute<DisableAutoRegister>() == null);
@@ -89,61 +88,71 @@ public static class ModuleManager
     /// <summary>
     ///     Włacza wszystkie moduły
     /// </summary>
-    public static void EnableModules()
+    public static void EnableModules(Assembly? assembly = null)
     {
         CoreLog.Info("LOADER", "------------- Włączanie modułów -------------");
-        int enabled = 0;
-        Assembly assembly = Assembly.GetCallingAssembly();
+        assembly ??= Assembly.GetCallingAssembly();
         if (!AssembliesModules.TryGetValue(assembly, out HashSet<Module>? modules))
         {
             CoreLog.Warn("LOADER", $"Nie ma zadnego modułu zarejestrowanego w {assembly.FullName}");
             return;
         }
 
-        foreach (Module? module in modules.OrderByDescending(x => x.Priority))
+        int enabled = modules.OrderByDescending(x => x.Priority).Count(m => TryEnableModule(m));
+
+        CoreLog.Info("LOADER", $"------------- Włączono {enabled} modułów -------------");
+    }
+
+    public static bool TryEnableModule(Module module, bool force = false)
+    {
+        if (module is IConfigurable configurable)
         {
-            if (module is IConfigurable configurable)
-            {
-                try
-                {
-                    configurable.LoadConfig();
-                }
-                catch (Exception e)
-                {
-                    CoreLog.Error("LOADER", $"Nie udało się załadować configu dla {module.Name}: {e}");
-                    continue;
-                }
-
-                if (configurable.BaseConfig is ITogglable { Enabled: false })
-                {
-                    configurable.UnloadConfig();
-                    continue;
-                }
-            }
-
             try
             {
-                module.Enable();
-                enabled++;
+                configurable.LoadConfig();
             }
-            catch
+            catch (Exception e)
             {
-                // ignored
+                CoreLog.Error("LOADER", $"Nie udało się załadować configu dla {module.Name}: {e}");
+                return false;
+            }
+
+            if (!force && configurable.BaseConfig is ITogglable { Enabled: false })
+            {
+                configurable.UnloadConfig();
+                return false;
             }
         }
 
-        CoreLog.Info("LOADER", $"------------- Włączono {enabled} modułów -------------");
+        try
+        {
+            module.Enable();
+        }
+        catch
+        {
+            return false;
+        }
+
+        return true;
     }
 
 
     /// <summary>
     ///     Wyłącza wszystko
     /// </summary>
-    public static void DisableAll()
+    internal static void DisableAll()
     {
         UnregisterEvents();
-        DisableModules();
-        UnregisterModules();
+        DisableAllModules();
+        UnregisterAllModules();
+    }
+
+    internal static void EnableAllModules()
+    {
+        foreach (Module module in Modules)
+        {
+            TryEnableModule(module);
+        }
     }
 
     /// <summary>
@@ -247,7 +256,7 @@ public static class ModuleManager
     /// <summary>
     ///     Eventy
     /// </summary>
-    private static void RegisterEvents()
+    internal static void RegisterEvents()
     {
         ServerEvents.RoundRestarted += OnRestartingRound;
     }
@@ -255,7 +264,7 @@ public static class ModuleManager
     /// <summary>
     ///     Eventy
     /// </summary>
-    private static void UnregisterEvents()
+    internal static void UnregisterEvents()
     {
         ServerEvents.RoundRestarted -= OnRestartingRound;
     }

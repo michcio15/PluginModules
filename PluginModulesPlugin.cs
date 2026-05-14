@@ -18,6 +18,7 @@ public class PluginModules : Plugin<Config>
 
     public override void Enable()
     {
+        ModuleManager.RegisterEvents();
     }
 
     public override void Disable()

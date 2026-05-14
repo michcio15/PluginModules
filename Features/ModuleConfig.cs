@@ -1,6 +1,7 @@
 using FajneConfigurables;
 using FajneConfigurables.Helpers;
 using FajneConfigurables.Interfaces;
+using LabApi.Features.Console;
 using PluginModules.Interfaces;
 
 namespace PluginModules.Features;
@@ -22,7 +23,7 @@ public abstract class Module<T> : Module, IConfigurable where T : class, IModule
     {
         get
         {
-            field ??= ConfigLoader.BuildPath(Name, Path);
+            field ??= ConfigLoader.BuildPath(Name, Assembly, Path);
             return field;
         }
     }

@@ -102,7 +102,7 @@ public class ReloadCommand : ICommand, IUsageProvider
 
     private static bool AllReload(out string response)
     {
-        ModuleManager.DisableModules();
+        ModuleManager.DisableAllModules();
         ModuleManager.EnableModules();
         response = "Załadowano ponownie wszystkie moduły";
         return true;

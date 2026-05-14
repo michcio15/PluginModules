@@ -42,7 +42,6 @@ public class InfoCommand : ICommand, IUsageProvider
     public string Command { get; } = "info";
     public string[] Aliases { get; } = ["i"];
     public string Description { get; } = "Wysyła wszystkie informacje na temat modułu";
-    public List<string> ExiledPermissions { get; } = ["rputils.info"];
     public string[] Usage { get; } = ["Nazwa modułu"];
 
     private static string GetInfo(Module module)

@@ -137,7 +137,7 @@ public abstract class Module
             return;
         }
 
-        ModuleLog ??= new ModuleLog(Name);
+        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name);
 
 
         SafeRunner.Execute(() =>
@@ -322,6 +322,7 @@ public abstract class Module
     {
         IEnumerable<Type> commandTypes = GetType().Assembly.GetTypes()
             .Where(t => t.Namespace != null &&
+                        !t.IsAbstract &&
                         t.Namespace.StartsWith(CommandsNamespace) &&
                         t.GetCustomAttribute<ModuleCommandAttribute>() != null &&
                         t.GetCustomAttribute<DisableAutoRegister>() == null);
@@ -355,7 +356,7 @@ public abstract class Module
             ModuleLog.Debug($"Unregistered remote admin command {remoteAdminCommand.Command}");
         }
 
-        foreach (ICommand consoleCommand in _consoleCommands)
+        foreach (ICommand consoleCommand in _consoleCommands.ToArray())
         {
             _consoleCommands.Remove(consoleCommand);
             Console.ConsoleCommandHandler.UnregisterCommand(consoleCommand);
