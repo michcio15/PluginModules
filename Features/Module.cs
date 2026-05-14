@@ -101,7 +101,6 @@ public abstract class Module
     /// </summary>
     internal IEnumerable<Type> CachedTypes = null!;
 
-
     /// <summary>
     /// No to namespace
     /// </summary>
