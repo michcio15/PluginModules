@@ -13,6 +13,8 @@ public class ReloadCommand : ICommand, IUsageProvider
 
     private static readonly HashSet<string> ModuleCases = ["m", "module", "mod"];
 
+    public List<string> ExiledPermissions { get; } = ["rputils.reload"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -56,8 +58,6 @@ public class ReloadCommand : ICommand, IUsageProvider
     public string[] Aliases { get; } = ["r"];
 
     public string Description { get; } = "Ładuje ponownie config / cały moduł";
-
-    public List<string> ExiledPermissions { get; } = ["rputils.reload"];
 
     public string[] Usage { get; } = ["all / config / module", "nazwa modułu"];
 

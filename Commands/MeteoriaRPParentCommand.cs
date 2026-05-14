@@ -21,7 +21,7 @@ public class MeteoriaRPParentCommand : ParentCommand, IUsageProvider
 
     public override string Command { get; } = "meteoriarp";
     public override string[] Aliases { get; } = [];
-    public override string Description { get; } = $"Komenda od PluginModules";
+    public override string Description { get; } = "Komenda od PluginModules";
     public string[] Usage { get; } = ["list / info / enable / disable / reload"];
 
     public sealed override void LoadGeneratedCommands()

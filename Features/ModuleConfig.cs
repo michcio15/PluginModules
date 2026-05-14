@@ -1,7 +1,6 @@
 using FajneConfigurables;
 using FajneConfigurables.Helpers;
 using FajneConfigurables.Interfaces;
-using LabApi.Features.Console;
 using PluginModules.Interfaces;
 
 namespace PluginModules.Features;

@@ -5,7 +5,9 @@ public static class CoreLog
     private const string DefaultPrefix = "PluginModules";
 
     private static string Format(string module, object message, string prefix)
-        => $"[{prefix}] [{module}] {message}";
+    {
+        return $"[{prefix}] [{module}] {message}";
+    }
 
     private static void Log(
         string module,
@@ -19,14 +21,22 @@ public static class CoreLog
     }
 
     public static void Info(string module, object message, string? prefix = null)
-        => Log(module, message, ConsoleColor.Yellow, prefix);
+    {
+        Log(module, message, ConsoleColor.Yellow, prefix);
+    }
 
     public static void Warn(string module, object message, string? prefix = null)
-        => Log(module, message, ConsoleColor.Magenta, prefix);
+    {
+        Log(module, message, ConsoleColor.Magenta, prefix);
+    }
 
     public static void Error(string module, object message, string? prefix = null)
-        => Log(module, message, ConsoleColor.Red, prefix);
+    {
+        Log(module, message, ConsoleColor.Red, prefix);
+    }
 
     public static void Debug(string module, object message, string? prefix = null)
-        => Log(module, message, ConsoleColor.DarkGreen, prefix);
+    {
+        Log(module, message, ConsoleColor.DarkGreen, prefix);
+    }
 }

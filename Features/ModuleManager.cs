@@ -37,7 +37,7 @@ public static class ModuleManager
 
 
     /// <summary>
-    /// Lista uruchomionych modułów
+    ///     Lista uruchomionych modułów
     /// </summary>
     public static IReadOnlyList<Module> EnabledModules => Modules.Where(x => x.IsActive).ToList();
 
@@ -72,7 +72,7 @@ public static class ModuleManager
                 ModulesInternal.Add(module);
                 Types.Add(type, module);
                 AddModuleToAssembly(module, assembly);
-                module.DebugProvider = debugProvider;
+                module.Init(debugProvider);
                 registered++;
                 CoreLog.Info("LOADER", $"Zarejestrowano: {module.Name} [Prio: {module.Priority}]");
             }

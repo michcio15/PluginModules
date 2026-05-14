@@ -53,8 +53,11 @@ public class InfoCommand : ICommand, IUsageProvider
         sb.AppendLine($"- Aktywny: {active}");
         sb.AppendLine($"- Priorytet : {module.Priority} ({(int)module.Priority})");
         sb.Append("- Komendy: ");
-        if (module.ClientRegisteredCommands.Count + module.ConsoleRegisteredCommands.Count +
-            module.RemoteAdminRegisteredCommands.Count > 0)
+
+        CommandsManager commandsManager = module.CommandsManager;
+
+        if (commandsManager.ClientRegisteredCommands.Count + commandsManager.ConsoleRegisteredCommands.Count +
+            commandsManager.RemoteAdminRegisteredCommands.Count > 0)
         {
             AppendCommands(ref sb, module);
         }
@@ -86,11 +89,11 @@ public class InfoCommand : ICommand, IUsageProvider
     {
         sb.AppendLine(MeteoriaRPParentCommand.Good("Tak"));
         sb.Append("<b>Komendy Clienta");
-        AppendHandler(ref sb, module.ClientRegisteredCommands);
+        AppendHandler(ref sb, module.CommandsManager.ClientRegisteredCommands);
         sb.Append("<b>Komendy RA");
-        AppendHandler(ref sb, module.RemoteAdminRegisteredCommands);
+        AppendHandler(ref sb, module.CommandsManager.RemoteAdminRegisteredCommands);
         sb.Append("<b>Komendy Servera");
-        AppendHandler(ref sb, module.ConsoleRegisteredCommands);
+        AppendHandler(ref sb, module.CommandsManager.ConsoleRegisteredCommands);
     }
 
     private static void AppendHandler(ref StringBuilder sb, IEnumerable<ICommand> commands)

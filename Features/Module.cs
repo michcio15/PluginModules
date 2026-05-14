@@ -1,15 +1,9 @@
-﻿using CommandSystem;
-using HarmonyLib;
+﻿using HarmonyLib;
 using JetBrains.Annotations;
-using LabApi.Features.Enums;
 using MEC;
 using PluginModules.Attributes;
-using PluginModules.Features.Commands.Interfaces;
 using PluginModules.Features.Components;
-using PluginModules.Helpers;
-using RemoteAdmin;
 using System.Reflection;
-using Console = GameCore.Console;
 
 namespace PluginModules.Features;
 
@@ -20,23 +14,6 @@ namespace PluginModules.Features;
 [PublicAPI]
 public abstract class Module
 {
-    private HashSet<ICommand> _clientCommands = new();
-
-    private HashSet<ICommand> _consoleCommands = new();
-
-    private HashSet<ICommand> _remoteAdminCommands = new();
-
-    //private readonly ListCommand<RPFeature> _features = [];
-    /// <summary>
-    ///     <see cref="Harmony" /> tego modułu
-    /// </summary>
-    protected Harmony? HarmonyInstance;
-
-    /// <summary>
-    ///     Spatchowane metody przez <see cref="HarmonyInstance" />
-    /// </summary>
-    public IEnumerable<MethodBase>? Patches => HarmonyInstance?.GetPatchedMethods();
-
     /// <summary>
     ///     Nazwa modułu
     /// </summary>
@@ -63,12 +40,22 @@ public abstract class Module
     public virtual bool EnableHarmony { get; protected set; } = false;
 
     /// <summary>
-    ///     Namespace używany przez harmony modułu
+    ///     <see cref="Harmony" /> tego modułu
     /// </summary>
-    protected virtual string HarmonyNamespace => GetType().Namespace!;
+    protected Harmony? HarmonyInstance => HarmonyManager.Harmony;
 
     /// <summary>
-    /// No czy ma byc debug
+    ///     Spatchowane metody przez <see cref="HarmonyInstance" />
+    /// </summary>
+    public IEnumerable<MethodBase>? Patches => HarmonyInstance?.GetPatchedMethods();
+
+    /// <summary>
+    /// Harmony manager dla patchy
+    /// </summary>
+    public HarmonyManager HarmonyManager { get; private set; } = null!;
+
+    /// <summary>
+    ///     No czy ma byc debug
     /// </summary>
     internal Func<bool>? DebugProvider { get; set; }
 
@@ -82,15 +69,17 @@ public abstract class Module
     /// </summary>
     private string CoroutineTag => $"RPModule_{Name}";
 
+    public CommandsManager CommandsManager { get; private set; } = null!;
+
+    /// <summary>
+    ///     Namespace do szukania <see cref="IModuleComponent" />
+    /// </summary>
+    protected virtual string ComponentsNamespace => CommandsManager.ToString();
+
     /// <summary>
     ///     Czy moduł ma szukać komend
     /// </summary>
-    public virtual bool CommandsEnabled { get; } = false;
-
-    /// <summary>
-    ///     Namespace do szukania komend
-    /// </summary>
-    protected virtual string CommandsNamespace => GetType().Namespace!;
+    public virtual bool CommandsEnabled => false;
 
     /// <summary>
     ///     Czy moduł ma jakies <see cref="IModuleComponent" />
@@ -98,34 +87,36 @@ public abstract class Module
     public virtual bool ComponentsEnabled { get; } = false;
 
     /// <summary>
-    ///     Namespace do szukania <see cref="IModuleComponent" />
-    /// </summary>
-    protected virtual string ComponentsNamespace => GetType().Namespace!;
-
-    /// <summary>
-    ///     <see cref="IReadOnlyCollection{T}" /> zarejestrowanych komend <see cref="RemoteAdminCommandHandler" />
-    /// </summary>
-    public IReadOnlyCollection<ICommand> RemoteAdminRegisteredCommands => _remoteAdminCommands;
-
-    /// <summary>
-    ///     <see cref="IReadOnlyCollection{T}" /> zarejestrowanych komend <see cref="ClientCommandHandler" />
-    /// </summary>
-    public IReadOnlyCollection<ICommand> ClientRegisteredCommands => _clientCommands;
-
-    /// <summary>
-    ///     <see cref="IReadOnlyCollection{T}" /> zarejestrowanych komend <see cref="GameConsoleCommandHandler" />
-    /// </summary>
-    public IReadOnlyCollection<ICommand> ConsoleRegisteredCommands => _consoleCommands;
-
-    /// <summary>
     ///     Czy ma się wyswietlac w komendach
     /// </summary>
     public virtual bool HideFromCommands { get; } = false;
 
     /// <summary>
-    /// Zwraca assembly tego modułu
+    ///     Zwraca assembly tego modułu
     /// </summary>
     public Assembly Assembly => GetType().Assembly;
+
+    /// <summary>
+    ///     Cached types for quicker enumeration
+    /// </summary>
+    internal IEnumerable<Type> CachedTypes = null!;
+
+
+    /// <summary>
+    /// No to namespace
+    /// </summary>
+    /// <exception cref="NullReferenceException">Jezeli null</exception>
+    public virtual string Namespace => GetType().Namespace ??
+                                       throw new NullReferenceException(
+                                           "Namespace is null. Please contact plugin creator");
+
+    internal void Init(Func<bool>? debugProvider = null)
+    {
+        DebugProvider = debugProvider;
+        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name);
+        CommandsManager = new CommandsManager(this);
+        HarmonyManager = new HarmonyManager(this);
+    }
 
     /// <summary>
     ///     Zajmuje się uruchamianiem i przygotowywaniem modułu
@@ -137,79 +128,60 @@ public abstract class Module
             return;
         }
 
-        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name);
-
-
-        SafeRunner.Execute(() =>
+        try
         {
-            if (EnableHarmony)
+            LookForTypes();
+        }
+        catch (Exception e)
+        {
+            ModuleLog.Error(e);
+        }
+
+        if (EnableHarmony)
+        {
+            try
             {
-                HarmonyInstance = new Harmony($"com.rp.{Name}");
-                bool patchesFound = false;
-
-                IEnumerable<Type> patchTypes = GetType().Assembly.GetTypes()
-                    .Where(t => t.Namespace != null &&
-                                t.Namespace.StartsWith(HarmonyNamespace) &&
-                                t.GetCustomAttribute<HarmonyPatch>() != null &&
-                                t.GetCustomAttribute<DisableAutoRegister>() == null);
-
-                foreach (Type type in patchTypes)
-                {
-                    try
-                    {
-                        HarmonyInstance.CreateClassProcessor(type).Patch();
-                        patchesFound = true;
-                    }
-                    catch (Exception e)
-                    {
-                        ModuleLog.Error($"Nie udało się załadować patcha {type.Name}: {e}");
-                    }
-                }
-
-                if (IsDebugEnabled)
-                {
-                    ModuleLog.Debug(patchesFound
-                        ? $"Załadowano patche z namespace: {HarmonyNamespace}."
-                        : $"Nie znaleziono patchy w namespace: {HarmonyNamespace}.");
-                }
+                HarmonyManager.PatchAll();
             }
-
-            if (CommandsEnabled)
+            catch (Exception e)
             {
-                try
-                {
-                    RegisterCommands();
-                }
-                catch (Exception e)
-                {
-                    ModuleLog.Error(e);
-                    throw;
-                }
+                ModuleLog.Error($"Couldn't patch harmony: {e}");
             }
+        }
 
 
-            if (ComponentsEnabled)
+        if (CommandsEnabled)
+        {
+            try
             {
-                try
-                {
-                    SetModuleInComponents();
-                }
-                catch (Exception e)
-                {
-                    ModuleLog.Error(e);
-                }
+                CommandsManager.RegisterCommands();
             }
-
-            OnEnabled();
-
-
-            IsActive = true;
-
-            if (IsDebugEnabled)
+            catch (Exception e)
             {
-                ModuleLog.Info($"Moduł {Name} włączony.");
+                ModuleLog.Error(e);
+                throw;
             }
-        }, Name, "Enable");
+        }
+
+
+        if (ComponentsEnabled)
+        {
+            try
+            {
+                SetModuleInComponents();
+            }
+            catch (Exception e)
+            {
+                ModuleLog.Error(e);
+            }
+        }
+
+        OnEnabled();
+
+
+        IsActive = true;
+
+        ModuleLog.Info($"Moduł {Name} włączony.");
     }
 
     /// <summary>
@@ -222,46 +194,30 @@ public abstract class Module
             return;
         }
 
-        SafeRunner.Execute(() =>
-        {
-            OnDisabled();
+        OnDisabled();
 
-            HarmonyInstance?.UnpatchAll(HarmonyInstance.Id);
-            HarmonyInstance = null;
+        HarmonyInstance?.UnpatchAll(HarmonyInstance.Id);
 
-            ResetRoundState();
-            IsActive = false;
+        ResetRoundState();
+        IsActive = false;
 
-            if (IsDebugEnabled)
-            {
-                ModuleLog.Debug($"Moduł {Name} wyłączony.");
-            }
+        HarmonyManager.UnpatchAll();
 
-            UnregisterCommands();
-        }, Name, "Disable");
+        CommandsManager.UnregisterCommands();
+
+
+        ModuleLog.Debug($"Moduł {Name} wyłączony.");
     }
 
-
-    /// <summary>
-    ///     Uruchamia korutynę z tagiem
-    /// </summary>
-    /// <param name="coroutine"><see cref="IEnumerator{float}" />, do uruchomienia</param>
-    /// <returns><see cref="CoroutineHandle" /> korutyny</returns>
-    internal CoroutineHandle RunCoroutine(IEnumerator<float> coroutine)
-    {
-        return Timing.RunCoroutine(coroutine, CoroutineTag);
-    }
 
     /// <summary>
     ///     Ustawia te <see cref="IModuleComponent" /> moduły
     /// </summary>
     private void SetModuleInComponents()
     {
-        IEnumerable<Type> componentTypes = GetType().Assembly.GetTypes()
-            .Where(t => t.Namespace != null &&
-                        t.GetInterfaces().Contains(typeof(IModuleComponent)) &&
-                        t.Namespace.StartsWith(ComponentsNamespace) &&
-                        t.GetCustomAttribute<DisableAutoRegister>() == null);
+        IEnumerable<Type> componentTypes = CachedTypes
+            .Where(t =>
+                typeof(IModuleComponent).IsAssignableFrom(t));
 
         foreach (PropertyInfo? prop in componentTypes.Select(GetModuleProperty))
         {
@@ -294,8 +250,7 @@ public abstract class Module
     {
         Timing.KillCoroutines(CoroutineTag);
 
-
-        SafeRunner.Execute(OnRoundCleanup, Name, "OnRoundCleanup");
+        OnRoundCleanup();
     }
 
     /// <summary>
@@ -313,97 +268,13 @@ public abstract class Module
     /// </summary>
     protected virtual void OnRoundCleanup() { }
 
-    /// <summary>
-    ///     Rejestrowanie featurów
-    /// </summary>
-    protected virtual void RegisterFeatures() { }
-
-    private void RegisterCommands()
+    private void LookForTypes()
     {
-        IEnumerable<Type> commandTypes = GetType().Assembly.GetTypes()
+        CachedTypes = Assembly.GetTypes()
             .Where(t => t.Namespace != null &&
-                        !t.IsAbstract &&
-                        t.Namespace.StartsWith(CommandsNamespace) &&
-                        t.GetCustomAttribute<ModuleCommandAttribute>() != null &&
-                        t.GetCustomAttribute<DisableAutoRegister>() == null);
-        foreach (Type type in commandTypes)
-        {
-            ModuleCommandAttribute attr = type.GetCustomAttribute<ModuleCommandAttribute>();
-            if (Activator.CreateInstance(type) is not ICommand command)
-            {
-                ModuleLog.Error($"Typ {type.Name} nie implementuje ICommand");
-                continue;
-            }
-
-            TryRegisterCommand(attr.CommandType, command);
-        }
-    }
-
-
-    private void UnregisterCommands()
-    {
-        foreach (ICommand clientCommand in _clientCommands.ToArray())
-        {
-            _clientCommands.Remove(clientCommand);
-            QueryProcessor.DotCommandHandler.UnregisterCommand(clientCommand);
-            ModuleLog.Debug($"Unregistered client command {clientCommand.Command}");
-        }
-
-        foreach (ICommand remoteAdminCommand in _remoteAdminCommands.ToArray())
-        {
-            _remoteAdminCommands.Remove(remoteAdminCommand);
-            CommandProcessor.RemoteAdminCommandHandler.UnregisterCommand(remoteAdminCommand);
-            ModuleLog.Debug($"Unregistered remote admin command {remoteAdminCommand.Command}");
-        }
-
-        foreach (ICommand consoleCommand in _consoleCommands.ToArray())
-        {
-            _consoleCommands.Remove(consoleCommand);
-            Console.ConsoleCommandHandler.UnregisterCommand(consoleCommand);
-            ModuleLog.Debug($"Unregistered console command {consoleCommand.Command}");
-        }
-    }
-
-    /// <summary>
-    ///     Registeruje komende do modułu
-    /// </summary>
-    /// <param name="commandType"><see cref="CommandType" /> tej komendy</param>
-    /// <param name="command"><see cref="ICommand" /> komenda</param>
-    protected void TryRegisterCommand(CommandType commandType, ICommand command)
-    {
-        try
-        {
-            switch (commandType)
-            {
-                case CommandType.RemoteAdmin:
-                    CommandProcessor.RemoteAdminCommandHandler.RegisterCommand(command);
-                    _remoteAdminCommands.Add(command);
-                    break;
-                case CommandType.Console:
-                    Console.ConsoleCommandHandler.RegisterCommand(command);
-                    _consoleCommands.Add(command);
-                    break;
-                case CommandType.Client:
-                    QueryProcessor.DotCommandHandler.RegisterCommand(command);
-                    _clientCommands.Add(command);
-                    break;
-            }
-        }
-        catch (Exception e)
-        {
-            ModuleLog.Error($"Nie udało się zarejestrować {command.Command} stacktrace zjebania {e.Message}");
-        }
-
-        if (command is IHasModule hasModule)
-        {
-            hasModule.SetModule(this);
-        }
-    }
-
-    protected Harmony CreateHarmonyInstance()
-    {
-        HarmonyInstance?.UnpatchAll(HarmonyInstance.Id);
-        return new Harmony($"com.rp.{Name}");
+                        t.Namespace.StartsWith(Namespace)
+                        && t.GetCustomAttribute<DisableAutoRegister>() == null
+                        && !t.IsAbstract);
     }
 }
 

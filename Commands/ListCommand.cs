@@ -8,6 +8,8 @@ namespace PluginModules.Commands;
 
 public class ListCommand : ICommand
 {
+    public List<string> ExiledPermissions { get; } = ["rputils.list"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -23,7 +25,6 @@ public class ListCommand : ICommand
     public string Command { get; } = "list";
     public string[] Aliases { get; } = ["l"];
     public string Description { get; } = "Wypisuje wszystkie moduły i ich stan";
-    public List<string> ExiledPermissions { get; } = ["rputils.list"];
 
     public static string GetList()
     {
@@ -44,8 +45,10 @@ public class ListCommand : ICommand
         string priority = module.Priority.ToString();
         string harmony = module.EnableHarmony ? Good("Harmony Aktywne") : Bad("Harmony Nieaktywne");
         string commands;
-        int commandsSum = module.ClientRegisteredCommands.Count + module.ConsoleRegisteredCommands.Count +
-                          module.RemoteAdminRegisteredCommands.Count;
+        CommandsManager commandsManager = module.CommandsManager;
+        int commandsSum = commandsManager.ClientRegisteredCommands.Count +
+                          commandsManager.ConsoleRegisteredCommands.Count +
+                          commandsManager.RemoteAdminRegisteredCommands.Count;
         if (commandsSum > 0)
         {
             commands = MeteoriaRPParentCommand.Good($"Komendy: {commandsSum}");

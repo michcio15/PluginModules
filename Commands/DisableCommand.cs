@@ -6,6 +6,8 @@ namespace PluginModules.Commands;
 
 public class DisableCommand : ICommand, IUsageProvider
 {
+    public List<string> ExiledPermissions { get; } = ["rputils.disable"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -42,6 +44,5 @@ public class DisableCommand : ICommand, IUsageProvider
     public string Command { get; } = "disable";
     public string[] Aliases { get; } = ["d"];
     public string Description { get; } = "Wyłącza moduł";
-    public List<string> ExiledPermissions { get; } = ["rputils.disable"];
     public string[] Usage { get; } = ["nazwa modułu"];
 }

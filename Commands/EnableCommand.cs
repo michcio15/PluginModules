@@ -1,5 +1,4 @@
 ﻿using CommandSystem;
-using LabApi.Features.Permissions;
 using PluginModules.Features;
 using System.Diagnostics.CodeAnalysis;
 
@@ -7,6 +6,8 @@ namespace PluginModules.Commands;
 
 public class EnableCommand : ICommand, IUsageProvider
 {
+    public List<string> ExiledPermissions { get; } = ["rputils.enable"];
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -43,6 +44,5 @@ public class EnableCommand : ICommand, IUsageProvider
     public string Command { get; } = "enable";
     public string[] Aliases { get; } = ["e"];
     public string Description { get; } = "Włącza moduł";
-    public List<string> ExiledPermissions { get; } = ["rputils.enable"];
     public string[] Usage { get; } = ["nazwa modułu"];
 }
