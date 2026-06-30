@@ -27,7 +27,7 @@ public static class ModuleManager
     /// <summary>
     ///     Jakie assembly ma jaki moduł
     /// </summary>
-    private static readonly Dictionary<Assembly, HashSet<Module>> AssembliesModules = new();
+    internal static readonly Dictionary<Assembly, HashSet<Module>> AssembliesModules = new();
 
     /// <summary>
     ///     Moduły tylko do oczytu
@@ -120,6 +120,7 @@ public static class ModuleManager
             if (!force && configurable.BaseConfig is ITogglable { Enabled: false })
             {
                 configurable.UnloadConfig();
+                CoreLog.Debug("LOADER", $"{module.Name} is disabled in config, skipping");
                 return false;
             }
         }
@@ -128,8 +129,9 @@ public static class ModuleManager
         {
             module.Enable();
         }
-        catch
+        catch (Exception e)
         {
+            CoreLog.Error("LOADER", $"{module.Name} crashed while enabling: {e}");
             return false;
         }
 

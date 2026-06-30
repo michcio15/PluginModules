@@ -1,11 +1,12 @@
 using FajneConfigurables;
-using FajneConfigurables.Helpers;
 using FajneConfigurables.Interfaces;
+using JetBrains.Annotations;
 using PluginModules.Interfaces;
 
 namespace PluginModules.Features;
 
-public abstract class Module<T> : Module, IConfigurable where T : class, IModuleConfig, new()
+[MeansImplicitUse(ImplicitUseKindFlags.Default)]
+public abstract class Module<T> : Module, IConfigurable, IReloadableModule where T : class, IModuleConfig, new()
 {
     public T Config { get; private set; } = null!;
 
@@ -14,8 +15,10 @@ public abstract class Module<T> : Module, IConfigurable where T : class, IModule
     /// <inheritdoc />
     public IConfigurableConfig BaseConfig => Config;
 
+    public override bool IsDebugEnabled => Config.DebugEnabled || base.IsDebugEnabled;
+
     /// <inheritdoc />
-    public abstract string[]? Path { get; }
+    public virtual string[]? Path { get; } = null;
 
     /// <inheritdoc />
     public string ConfigPath
@@ -39,12 +42,8 @@ public abstract class Module<T> : Module, IConfigurable where T : class, IModule
 
     public bool TryReloadConfig()
     {
-        if (!YamlHelper.TryDeserialize(this.GetConfigPath(), out T? newConfig))
-        {
-            return false;
-        }
-
-        Config = newConfig;
+        UnloadConfig();
+        LoadConfig();
         return true;
     }
 }

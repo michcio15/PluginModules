@@ -6,8 +6,6 @@ namespace PluginModules.Commands;
 
 public class EnableCommand : ICommand, IUsageProvider
 {
-    public List<string> ExiledPermissions { get; } = ["rputils.enable"];
-
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -18,7 +16,7 @@ public class EnableCommand : ICommand, IUsageProvider
 
         if (arguments.Count < 1)
         {
-            response = $"Poprawne użycie: rputils {Command} {this.DisplayCommandUsage()}";
+            response = $"Poprawne użycie: pluginmodules {Command} {this.DisplayCommandUsage()}";
             return false;
         }
 

@@ -28,21 +28,28 @@ public sealed class HarmonyManager
 
         foreach (Type type in patchTypes)
         {
-            try
-            {
-                Harmony.CreateClassProcessor(type).Patch();
-                patchesFound = true;
-            }
-            catch (Exception e)
-            {
-                ModuleLog.Error($"Nie udało się załadować patcha {type.Name}: {e}");
-            }
+            TryPatch(type, Harmony, ref patchesFound);
         }
 
 
         ModuleLog.Debug(patchesFound
             ? $"Załadowano patche z namespace: {Namespace}."
             : $"Nie znaleziono patchy w namespace: {Namespace}.");
+    }
+
+    private bool TryPatch(Type type, Harmony harmony, ref bool patchesFound)
+    {
+        try
+        {
+            harmony.CreateClassProcessor(type).Patch();
+            patchesFound = true;
+            return true;
+        }
+        catch (Exception e)
+        {
+            ModuleLog.Error($"Nie udało się załadować patcha {type.Name}: {e}");
+            return false;
+        }
     }
 
     public void UnpatchAll()

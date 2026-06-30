@@ -2,14 +2,14 @@
 using NorthwoodLib.Pools;
 using PluginModules.Features;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using System.Text;
+using Module = PluginModules.Features.Module;
 
 namespace PluginModules.Commands;
 
 public class ListCommand : ICommand
 {
-    public List<string> ExiledPermissions { get; } = ["rputils.list"];
-
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -30,11 +30,16 @@ public class ListCommand : ICommand
     {
         StringBuilder sb = StringBuilderPool.Shared.Rent();
         sb.AppendLine("<color=#98FB98>Zarejestrowane moduły: </color>");
-        foreach (Module module in ModuleManager.Modules.Where(m => !m.HideFromCommands)
-                     .OrderByDescending(m => m.Priority).ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase))
+        foreach ((Assembly assembly, HashSet<Module> modules) in ModuleManager.AssembliesModules)
         {
-            AppendModule(ref sb, module);
+            sb.AppendLine($"<color=#a8dcff>{assembly.GetName().Name}:</color>");
+            foreach (Module module in modules.Where(m => !m.HideFromCommands)
+                         .OrderByDescending(m => m.Priority).ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase))
+            {
+                AppendModule(ref sb, module);
+            }
         }
+
 
         return StringBuilderPool.Shared.ToStringReturn(sb);
     }
@@ -51,15 +56,15 @@ public class ListCommand : ICommand
                           commandsManager.RemoteAdminRegisteredCommands.Count;
         if (commandsSum > 0)
         {
-            commands = MeteoriaRPParentCommand.Good($"Komendy: {commandsSum}");
+            commands = PluginModulesParentCommand.Good($"Komendy: {commandsSum}");
         }
         else if (!module.CommandsEnabled)
         {
-            commands = MeteoriaRPParentCommand.Bad("Komendy: Wyłączone");
+            commands = PluginModulesParentCommand.Bad("Komendy: Wyłączone");
         }
         else
         {
-            commands = MeteoriaRPParentCommand.Bad("Komendy: Brak");
+            commands = PluginModulesParentCommand.Bad("Komendy: Brak");
         }
 
         sb.AppendLine($"- {module.Name} [{priority}] | {active} | {commands} | {harmony}");
@@ -67,11 +72,11 @@ public class ListCommand : ICommand
 
     private static string Good(string text)
     {
-        return MeteoriaRPParentCommand.Good(text);
+        return PluginModulesParentCommand.Good(text);
     }
 
     private static string Bad(string text)
     {
-        return MeteoriaRPParentCommand.Bad(text);
+        return PluginModulesParentCommand.Bad(text);
     }
 }

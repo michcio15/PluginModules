@@ -12,6 +12,26 @@ namespace PluginModules.Commands;
 
 public class InfoCommand : ICommand, IUsageProvider
 {
+    private static readonly Dictionary<string, string> TypeAliases = new()
+    {
+        { "Boolean", "bool" },
+        { "Byte", "byte" },
+        { "SByte", "sbyte" },
+        { "Int16", "short" },
+        { "UInt16", "ushort" },
+        { "Int32", "int" },
+        { "UInt32", "uint" },
+        { "Int64", "long" },
+        { "UInt64", "ulong" },
+        { "Single", "float" },
+        { "Double", "double" },
+        { "Decimal", "decimal" },
+        { "Char", "char" },
+        { "String", "string" },
+        { "Object", "object" },
+        { "Void", "void" },
+    };
+
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -22,12 +42,13 @@ public class InfoCommand : ICommand, IUsageProvider
 
         if (arguments.Count < 1)
         {
-            response = $"Poprawne użycie: rputils {Command} {this.DisplayCommandUsage()}";
+            response = $"Poprawne użycie: pluginmodules {Command} {this.DisplayCommandUsage()}";
             return false;
         }
 
         string moduleName = string.Join(" ", arguments);
-        Module? module = ModuleManager.Modules.FirstOrDefault(m => m.Name == moduleName);
+        Module? module = ModuleManager.Modules.FirstOrDefault(m =>
+            !m.HideFromCommands && string.Equals(m.Name, moduleName, StringComparison.InvariantCultureIgnoreCase));
         if (module == null)
         {
             response = $"Nie udało się znaleźć modułu o nazwie: \'{moduleName}\'";
@@ -49,9 +70,10 @@ public class InfoCommand : ICommand, IUsageProvider
         StringBuilder sb = StringBuilderPool.Shared.Rent();
         sb.AppendLine("Informacje o module:");
         sb.AppendLine($"<b><color=#666699>{module.Name}</color></b>");
-        string active = module.IsActive ? MeteoriaRPParentCommand.Good("Tak") : MeteoriaRPParentCommand.Bad("Nie");
-        sb.AppendLine($"- Aktywny: {active}");
+        sb.AppendLine($"- Aktywny: {EnabledOrNo(module.IsActive)}");
         sb.AppendLine($"- Priorytet : {module.Priority} ({(int)module.Priority})");
+        sb.AppendLine($"- Assembly : {module.Assembly.GetName().Name}");
+        sb.AppendLine($"- Debug : {EnabledOrNo(module.IsDebugEnabled)}");
         sb.Append("- Komendy: ");
 
         CommandsManager commandsManager = module.CommandsManager;
@@ -63,11 +85,11 @@ public class InfoCommand : ICommand, IUsageProvider
         }
         else if (!module.CommandsEnabled)
         {
-            sb.AppendLine(MeteoriaRPParentCommand.Bad("Wyłączone"));
+            sb.AppendLine(PluginModulesParentCommand.Bad("Wyłączone"));
         }
         else
         {
-            sb.AppendLine(MeteoriaRPParentCommand.Bad("Brak"));
+            sb.AppendLine(PluginModulesParentCommand.Bad("Brak"));
         }
 
         AppendHarmony(ref sb, module);
@@ -82,17 +104,17 @@ public class InfoCommand : ICommand, IUsageProvider
 
     private static string EnabledOrNo(bool value)
     {
-        return value ? MeteoriaRPParentCommand.Good("Tak") : MeteoriaRPParentCommand.Bad("Nie");
+        return value ? PluginModulesParentCommand.Good("Tak") : PluginModulesParentCommand.Bad("Nie");
     }
 
     private static void AppendCommands(ref StringBuilder sb, Module module)
     {
-        sb.AppendLine(MeteoriaRPParentCommand.Good("Tak"));
+        sb.AppendLine(PluginModulesParentCommand.Good("Tak"));
         sb.Append("<b>Komendy Clienta");
         AppendHandler(ref sb, module.CommandsManager.ClientRegisteredCommands);
         sb.Append("<b>Komendy RA");
         AppendHandler(ref sb, module.CommandsManager.RemoteAdminRegisteredCommands);
-        sb.Append("<b>Komendy Servera");
+        sb.Append("<b>Komendy Serwera");
         AppendHandler(ref sb, module.CommandsManager.ConsoleRegisteredCommands);
     }
 
@@ -102,7 +124,7 @@ public class InfoCommand : ICommand, IUsageProvider
         if (commands == null || !enumerable.Any())
         {
             sb.AppendLine(" [0] : </b>");
-            sb.AppendLine(MeteoriaRPParentCommand.Bad("    - Brak"));
+            sb.AppendLine(PluginModulesParentCommand.Bad("    - Brak"));
             return;
         }
 
@@ -147,9 +169,22 @@ public class InfoCommand : ICommand, IUsageProvider
         sb.AppendLine($" [{module.Patches.Count()}] : ");
         foreach (MethodBase methodBase in module.Patches)
         {
-            sb.AppendLine($"    - {methodBase.DeclaringType?.Name}.{methodBase.Name}");
+            sb.AppendLine($"    - {FormatPatch(methodBase)}");
         }
     }
+
+    private static string FormatPatch(MethodBase method)
+    {
+        string assembly = method.DeclaringType?.Assembly.GetName().Name ?? "?";
+        string ns = method.DeclaringType?.FullName ?? "?";
+        string prefix = method.IsStatic ? "." : "::";
+        string name = $"{prefix}{method.Name}";
+        string args = string.Join(", ", method.GetParameters().Select(p => $"{FormatTypeName(p.ParameterType)} {p.Name}"));
+        return $"[{assembly}] {ns}{name}({args})";
+    }
+
+    private static string FormatTypeName(Type type)
+        => TypeAliases.TryGetValue(type.Name, out string? alias) ? alias : type.Name;
 
     private static void AppendConfigPath(ref StringBuilder sb, Module module, IConfigurable configurable)
     {

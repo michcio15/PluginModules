@@ -44,6 +44,7 @@ public sealed class CommandsManager
     {
         foreach (Type type in GetCommandTypes())
         {
+            ModuleLog.Debug($"Registering command {type.Name}");
             ModuleCommandAttribute attr = type.GetCustomAttribute<ModuleCommandAttribute>();
             if (Activator.CreateInstance(type) is not ICommand command)
             {
@@ -77,6 +78,24 @@ public sealed class CommandsManager
             _consoleCommands.Remove(consoleCommand);
             Console.ConsoleCommandHandler.UnregisterCommand(consoleCommand);
             ModuleLog.Debug($"Unregistered console command {consoleCommand.Command}");
+        }
+    }
+
+    public bool TryUnregisterCommand(ICommand command, ICommandHandler handler)
+    {
+        switch (handler)
+        {
+            case RemoteAdminCommandHandler remoteAdminCommandHandler:
+                remoteAdminCommandHandler.UnregisterCommand(command);
+                return _remoteAdminCommands.Remove(command);
+            case ClientCommandHandler clientCommandHandler:
+                clientCommandHandler.UnregisterCommand(command);
+                return _clientCommands.Remove(command);
+            case GameConsoleCommandHandler consoleCommandHandler:
+                consoleCommandHandler.UnregisterCommand(command);
+                return _consoleCommands.Remove(command);
+            default:
+                return false;
         }
     }
 

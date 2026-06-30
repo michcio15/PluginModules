@@ -33,7 +33,7 @@ public abstract class Module
     ///     Używane do logowania w module
     /// </summary>
     public ModuleLog ModuleLog { get; protected set; } = null!;
-
+    
     /// <summary>
     ///     Czy moduł ma używać Harmony
     /// </summary>
@@ -65,16 +65,9 @@ public abstract class Module
     public virtual bool IsDebugEnabled => DebugProvider?.Invoke() == true;
 
     /// <summary>
-    ///     Tag korutyny do łatwiejszego usuwania.
+    /// Do komend
     /// </summary>
-    private string CoroutineTag => $"RPModule_{Name}";
-
     public CommandsManager CommandsManager { get; private set; } = null!;
-
-    /// <summary>
-    ///     Namespace do szukania <see cref="IModuleComponent" />
-    /// </summary>
-    protected virtual string ComponentsNamespace => CommandsManager.ToString();
 
     /// <summary>
     ///     Czy moduł ma szukać komend
@@ -112,7 +105,7 @@ public abstract class Module
     internal void Init(Func<bool>? debugProvider = null)
     {
         DebugProvider = debugProvider;
-        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name);
+        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name, debugProvider != null && debugProvider.Invoke());
         CommandsManager = new CommandsManager(this);
         HarmonyManager = new HarmonyManager(this);
     }
@@ -247,8 +240,6 @@ public abstract class Module
     /// </summary>
     public void ResetRoundState()
     {
-        Timing.KillCoroutines(CoroutineTag);
-
         OnRoundCleanup();
     }
 
@@ -273,7 +264,7 @@ public abstract class Module
             .Where(t => t.Namespace != null &&
                         t.Namespace.StartsWith(Namespace)
                         && t.GetCustomAttribute<DisableAutoRegister>() == null
-                        && !t.IsAbstract);
+                        && (!t.IsAbstract || t.IsSealed));
     }
 }
 

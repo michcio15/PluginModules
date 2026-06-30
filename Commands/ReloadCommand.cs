@@ -13,8 +13,6 @@ public class ReloadCommand : ICommand, IUsageProvider
 
     private static readonly HashSet<string> ModuleCases = ["m", "module", "mod"];
 
-    public List<string> ExiledPermissions { get; } = ["rputils.reload"];
-
     public bool Execute(ArraySegment<string> arguments, ICommandSender sender, [UnscopedRef] out string response)
     {
         if (!sender.CheckPermission(PlayerPermissions.ServerConsoleCommands))
@@ -30,7 +28,7 @@ public class ReloadCommand : ICommand, IUsageProvider
                 return AllReload(out response);
             }
 
-            response = $"Poprawne użycie: rputils {Command} {this.DisplayCommandUsage()}";
+            response = $"Poprawne użycie: pluginmodules {Command} {this.DisplayCommandUsage()}";
             return false;
         }
 
@@ -49,7 +47,7 @@ public class ReloadCommand : ICommand, IUsageProvider
             return ModuleReload(arguments.Skip(1), out response);
         }
 
-        response = $"Poprawne użycie: rputils {Command} {this.DisplayCommandUsage()}";
+        response = $"Poprawne użycie: pluginmodules {Command} {this.DisplayCommandUsage()}";
         return false;
     }
 

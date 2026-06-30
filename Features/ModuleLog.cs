@@ -4,14 +4,16 @@ namespace PluginModules.Features;
 
 public class ModuleLog
 {
-    public ModuleLog(string moduleName, string prefix)
+    public ModuleLog(string moduleName, string prefix, bool debugEnabled)
     {
         ModuleName = moduleName;
         Prefix = prefix;
+        IsDebugEnabled = debugEnabled;
     }
 
     public string Prefix { get; }
     public string ModuleName { get; }
+    public bool IsDebugEnabled { get; }
 
     public void Info(object value)
     {
@@ -30,6 +32,11 @@ public class ModuleLog
 
     public void Debug(object value)
     {
+        if (!IsDebugEnabled)
+        {
+            return;
+        }
+
         CoreLog.Debug(ModuleName, value, Prefix);
     }
 }
