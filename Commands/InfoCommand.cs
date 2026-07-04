@@ -3,6 +3,7 @@ using FajneConfigurables;
 using FajneConfigurables.Interfaces;
 using NorthwoodLib.Pools;
 using PluginModules.Features;
+using PluginModules.Features.Interface;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
@@ -76,7 +77,7 @@ public class InfoCommand : ICommand, IUsageProvider
         sb.AppendLine($"- Debug : {EnabledOrNo(module.IsDebugEnabled)}");
         sb.Append("- Komendy: ");
 
-        CommandsManager commandsManager = module.CommandsManager;
+        ICommandsManager commandsManager = module.CommandsManager;
 
         if (commandsManager.ClientRegisteredCommands.Count + commandsManager.ConsoleRegisteredCommands.Count +
             commandsManager.RemoteAdminRegisteredCommands.Count > 0)

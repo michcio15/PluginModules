@@ -1,6 +1,7 @@
 ﻿using CommandSystem;
 using NorthwoodLib.Pools;
 using PluginModules.Features;
+using PluginModules.Features.Interface;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
@@ -50,7 +51,7 @@ public class ListCommand : ICommand
         string priority = module.Priority.ToString();
         string harmony = module.EnableHarmony ? Good("Harmony Aktywne") : Bad("Harmony Nieaktywne");
         string commands;
-        CommandsManager commandsManager = module.CommandsManager;
+        ICommandsManager commandsManager = module.CommandsManager;
         int commandsSum = commandsManager.ClientRegisteredCommands.Count +
                           commandsManager.ConsoleRegisteredCommands.Count +
                           commandsManager.RemoteAdminRegisteredCommands.Count;
