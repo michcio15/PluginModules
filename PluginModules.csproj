@@ -8,11 +8,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <Authors>michcio</Authors>
-        <Copyright>Copyright © 2026 michcio. All rights reserved.</Copyright>
-    </PropertyGroup>
-
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DebugType>embedded</DebugType>
     </PropertyGroup>

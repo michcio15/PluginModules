@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using MEC;
 using PluginModules.Attributes;
 using PluginModules.Features.Components;
+using PluginModules.Features.Interface;
 using System.Reflection;
 
 namespace PluginModules.Features;
@@ -33,7 +34,7 @@ public abstract class Module
     ///     Używane do logowania w module
     /// </summary>
     public ModuleLog ModuleLog { get; protected set; } = null!;
-    
+
     /// <summary>
     ///     Czy moduł ma używać Harmony
     /// </summary>
@@ -52,7 +53,7 @@ public abstract class Module
     /// <summary>
     /// Harmony manager dla patchy
     /// </summary>
-    public HarmonyManager HarmonyManager { get; private set; } = null!;
+    public IHarmonyManager HarmonyManager { get; private set; } = null!;
 
     /// <summary>
     ///     No czy ma byc debug
@@ -67,7 +68,7 @@ public abstract class Module
     /// <summary>
     /// Do komend
     /// </summary>
-    public CommandsManager CommandsManager { get; private set; } = null!;
+    public ICommandsManager CommandsManager { get; private set; } = null!;
 
     /// <summary>
     ///     Czy moduł ma szukać komend

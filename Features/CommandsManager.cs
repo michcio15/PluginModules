@@ -1,7 +1,9 @@
 ﻿using CommandSystem;
+using JetBrains.Annotations;
 using LabApi.Features.Enums;
 using PluginModules.Attributes;
 using PluginModules.Features.Commands.Interfaces;
+using PluginModules.Features.Interface;
 using RemoteAdmin;
 using System.Reflection;
 using Console = GameCore.Console;
@@ -9,7 +11,8 @@ using Console = GameCore.Console;
 
 namespace PluginModules.Features;
 
-public sealed class CommandsManager
+[PublicAPI]
+public class CommandsManager : ICommandsManager
 {
     private readonly HashSet<ICommand> _clientCommands = new();
 
@@ -40,7 +43,7 @@ public sealed class CommandsManager
     /// </summary>
     public IReadOnlyCollection<ICommand> ConsoleRegisteredCommands => _consoleCommands;
 
-    internal void RegisterCommands()
+    public void RegisterCommands()
     {
         foreach (Type type in GetCommandTypes())
         {
@@ -57,7 +60,7 @@ public sealed class CommandsManager
     }
 
 
-    internal void UnregisterCommands()
+    public void UnregisterCommands()
     {
         foreach (ICommand clientCommand in _clientCommands.ToArray())
         {
@@ -101,7 +104,7 @@ public sealed class CommandsManager
 
     private IEnumerable<Type> GetCommandTypes()
     {
-        return Module.CachedTypes.Where(t =>
+        return Module.CachedTypes.Where(static t =>
             t.GetCustomAttribute<ModuleCommandAttribute>() != null && typeof(ICommand).IsAssignableFrom(t));
     }
 
@@ -110,8 +113,9 @@ public sealed class CommandsManager
     /// </summary>
     /// <param name="commandType"><see cref="CommandType" /> tej komendy</param>
     /// <param name="command"><see cref="ICommand" /> komenda</param>
-    public void TryRegisterCommand(CommandType commandType, ICommand command)
+    public bool TryRegisterCommand(CommandType commandType, ICommand command)
     {
+        bool success = false;
         try
         {
             switch (commandType)
@@ -119,25 +123,32 @@ public sealed class CommandsManager
                 case CommandType.RemoteAdmin:
                     CommandProcessor.RemoteAdminCommandHandler.RegisterCommand(command);
                     _remoteAdminCommands.Add(command);
+                    success = true;
                     break;
                 case CommandType.Console:
                     Console.ConsoleCommandHandler.RegisterCommand(command);
                     _consoleCommands.Add(command);
+                    success = true;
                     break;
                 case CommandType.Client:
                     QueryProcessor.DotCommandHandler.RegisterCommand(command);
                     _clientCommands.Add(command);
+                    success = true;
                     break;
             }
         }
         catch (Exception e)
         {
             ModuleLog.Error($"Nie udało się zarejestrować {command.Command} stacktrace zjebania {e.Message}");
+            success = false;
+            return success;
         }
 
         if (command is IHasModule hasModule)
         {
             hasModule.SetModule(Module);
         }
+
+        return success;
     }
 }

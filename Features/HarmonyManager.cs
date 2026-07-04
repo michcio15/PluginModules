@@ -1,11 +1,14 @@
 ﻿using HarmonyLib;
+using JetBrains.Annotations;
+using PluginModules.Features.Interface;
 using System.Reflection;
 
 namespace PluginModules.Features;
 
-public sealed class HarmonyManager
+[PublicAPI]
+public class HarmonyManager : IHarmonyManager
 {
-    internal Harmony? Harmony = null;
+    public Harmony? Harmony { get; set; } = null;
 
     public HarmonyManager(Module module)
     {
@@ -21,7 +24,7 @@ public sealed class HarmonyManager
     {
         bool patchesFound = false;
 
-        IEnumerable<Type> patchTypes = Module.CachedTypes.Where(t =>
+        IEnumerable<Type> patchTypes = Module.CachedTypes.Where(static t =>
             t.GetCustomAttribute<HarmonyPatch>() != null);
 
         Harmony ??= new Harmony(HarmonyName);
@@ -37,7 +40,7 @@ public sealed class HarmonyManager
             : $"Nie znaleziono patchy w namespace: {Namespace}.");
     }
 
-    private bool TryPatch(Type type, Harmony harmony, ref bool patchesFound)
+    protected virtual bool TryPatch(Type type, Harmony harmony, ref bool patchesFound)
     {
         try
         {
