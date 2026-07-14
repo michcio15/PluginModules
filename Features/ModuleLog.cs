@@ -4,16 +4,24 @@ namespace PluginModules.Features;
 
 public class ModuleLog
 {
-    public ModuleLog(string moduleName, string prefix, bool debugEnabled)
+    public ModuleLog(string moduleName, string prefix, Func<bool> debugEnabled)
     {
         ModuleName = moduleName;
         Prefix = prefix;
-        IsDebugEnabled = debugEnabled;
+        _isDebugEnabled = debugEnabled;
+    }
+
+    public ModuleLog(string moduleName, string prefix, bool debugEnabled)
+        : this(moduleName, prefix, () => debugEnabled)
+    {
     }
 
     public string Prefix { get; }
     public string ModuleName { get; }
-    public bool IsDebugEnabled { get; }
+
+    private readonly Func<bool> _isDebugEnabled;
+
+    public bool IsDebugEnabled => _isDebugEnabled();
 
     public void Info(object value)
     {

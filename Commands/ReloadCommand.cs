@@ -23,11 +23,6 @@ public class ReloadCommand : ICommand, IUsageProvider
 
         if (arguments.Count < 2)
         {
-            if (AllCases.Contains(arguments.At(0).ToLower()))
-            {
-                return AllReload(out response);
-            }
-
             response = $"Poprawne użycie: pluginmodules {Command} {this.DisplayCommandUsage()}";
             return false;
         }
@@ -71,7 +66,12 @@ public class ReloadCommand : ICommand, IUsageProvider
         }
 
         module.Disable();
-        module.Enable();
+        if (!ModuleManager.TryEnableModule(module, force: true))
+        {
+            response = $"Nie udało się ponownie załadować modułu: '{moduleName}'";
+            return false;
+        }
+
         response = $"Pomyślnie załadowano ponownie moduł: '{moduleName}'";
         return true;
     }

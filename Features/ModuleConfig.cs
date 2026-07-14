@@ -5,7 +5,8 @@ using PluginModules.Interfaces;
 
 namespace PluginModules.Features;
 
-[MeansImplicitUse(ImplicitUseKindFlags.Default)]
+[PublicAPI]
+[MeansImplicitUse(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature, ImplicitUseTargetFlags.Itself)]
 public abstract class Module<T> : Module, IConfigurable, IReloadableModule where T : class, IModuleConfig, new()
 {
     public T Config { get; private set; } = null!;

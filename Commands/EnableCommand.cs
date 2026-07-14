@@ -34,7 +34,12 @@ public class EnableCommand : ICommand, IUsageProvider
             return false;
         }
 
-        module.Enable();
+        if (!ModuleManager.TryEnableModule(module, force: true))
+        {
+            response = $"Nie udało się włączyć modułu: {module.Name}";
+            return false;
+        }
+
         response = $"Włączyłeś moduł: {module.Name}";
         return true;
     }

@@ -60,8 +60,8 @@ public static class ModuleManager
         Types.Clear();
         assembly ??= Assembly.GetCallingAssembly();
         IEnumerable<Type> types = assembly.GetTypes()
-            .Where(t => t.IsSubclassOf(typeof(Module)) && !t.IsAbstract &&
-                        t.GetCustomAttribute<DisableAutoRegister>() == null);
+            .Where(static t => t.IsSubclassOf(typeof(Module)) && !t.IsAbstract &&
+                               t.GetCustomAttribute<DisableAutoRegister>() == null);
         CoreLog.Info("LOADER", "------------- Rejestrowanie modułów -------------");
         int registered = 0;
         foreach (Type type in types)
@@ -98,7 +98,7 @@ public static class ModuleManager
             return;
         }
 
-        int enabled = modules.OrderByDescending(x => x.Priority).Count(m => TryEnableModule(m));
+        int enabled = modules.OrderByDescending(static x => x.Priority).Count(static m => TryEnableModule(m));
 
         CoreLog.Info("LOADER", $"------------- Włączono {enabled} modułów -------------");
     }

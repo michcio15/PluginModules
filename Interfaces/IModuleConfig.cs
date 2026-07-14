@@ -3,9 +3,7 @@ using FajneConfigurables.Interfaces;
 
 namespace PluginModules.Interfaces;
 
-public interface IModuleConfig : IConfigurableConfig, ITogglable, IDebugConfig;
-
-public interface IDebugConfig
+public interface IModuleConfig : IConfigurableConfig, ITogglable
 {
-    public bool DebugEnabled { get; set; }
+    bool DebugEnabled { get; set; }
 }

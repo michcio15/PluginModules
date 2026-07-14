@@ -11,7 +11,7 @@ namespace PluginModules.Features;
 /// <summary>
 ///     No to ten główny budulec
 /// </summary>
-[MeansImplicitUse]
+[MeansImplicitUse(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature, ImplicitUseTargetFlags.Itself)]
 [PublicAPI]
 public abstract class Module
 {
@@ -63,7 +63,7 @@ public abstract class Module
     /// <summary>
     ///     Czy jest włączony debug
     /// </summary>
-    public virtual bool IsDebugEnabled => DebugProvider?.Invoke() == true;
+    public virtual bool IsDebugEnabled => DebugProvider != null && DebugProvider();
 
     /// <summary>
     /// Do komend
@@ -106,7 +106,7 @@ public abstract class Module
     internal void Init(Func<bool>? debugProvider = null)
     {
         DebugProvider = debugProvider;
-        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name, debugProvider != null && debugProvider.Invoke());
+        ModuleLog ??= new ModuleLog(Name, Assembly.GetName().Name, () => IsDebugEnabled);
         CommandsManager = new CommandsManager(this);
         HarmonyManager = new HarmonyManager(this);
     }
@@ -209,7 +209,7 @@ public abstract class Module
     private void SetModuleInComponents()
     {
         IEnumerable<Type> componentTypes = CachedTypes
-            .Where(t =>
+            .Where(static t =>
                 typeof(IModuleComponent).IsAssignableFrom(t));
 
         foreach (PropertyInfo? prop in componentTypes.Select(GetModuleProperty))
