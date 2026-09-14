@@ -6,7 +6,7 @@ namespace PluginModules.Features.Components;
 public abstract class ModuleMonoBehaviour<TModule> : MonoBehaviour, IModuleComponent where TModule : Module
 {
     public static TModule Module { get; internal set; } = null!;
-    public static ModuleLog ModuleLog => Module.ModuleLog;
+    public static ModuleLog ModuleLog => Module.Log;
 }
 
 public abstract class ModuleMonoBehaviour<TModule, TConfig> : ModuleMonoBehaviour<TModule>

@@ -6,9 +6,6 @@ namespace PluginModules.Features.Commands;
 
 public abstract class ModuleCommand<T> : IHasModule, ICommand where T : Module
 {
-    public T Module { get; private set; } = null!;
-    public ModuleLog ModuleLog => Module.ModuleLog;
-
     public abstract bool Execute(ArraySegment<string> arguments, ICommandSender sender,
         [UnscopedRef] out string response);
 
@@ -20,4 +17,7 @@ public abstract class ModuleCommand<T> : IHasModule, ICommand where T : Module
     {
         Module = (T)module;
     }
+
+    public T Module { get; private set; } = null!;
+    public ModuleLog ModuleLog => Module.Log;
 }

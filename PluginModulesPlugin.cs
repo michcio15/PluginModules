@@ -7,13 +7,13 @@ namespace PluginModules;
 
 public class PluginModules : Plugin<Config>
 {
+    public static new Config Config { get; private set; } = null!;
+    public static PluginModules Instance { get; private set; } = null!;
     public override string Name { get; } = "PluginModules";
     public override string Description { get; } = "Plugin for modules for plugins";
     public override string Author { get; } = "michcio";
     public override Version Version { get; } = new(1, 1, 2);
     public override Version RequiredApiVersion { get; } = new(LabApiProperties.CompiledVersion);
-    public static new Config Config { get; private set; } = null!;
-    public static PluginModules Instance { get; private set; } = null!;
     public override LoadPriority Priority { get; } = LoadPriority.Highest;
 
     public override void Enable()

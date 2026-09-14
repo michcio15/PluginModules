@@ -66,7 +66,7 @@ public class ReloadCommand : ICommand, IUsageProvider
         }
 
         module.Disable();
-        if (!ModuleManager.TryEnableModule(module, force: true))
+        if (!ModuleManager.TryEnableModule(module, true))
         {
             response = $"Nie udało się ponownie załadować modułu: '{moduleName}'";
             return false;

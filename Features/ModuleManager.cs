@@ -20,14 +20,14 @@ public static class ModuleManager
     internal static readonly HashSet<Module> ModulesInternal = [];
 
     /// <summary>
-    ///     Typy modułuów dla szybszego lookupu
-    /// </summary>
-    private static readonly Dictionary<Type, Module> Types = new();
-
-    /// <summary>
     ///     Jakie assembly ma jaki moduł
     /// </summary>
     internal static readonly Dictionary<Assembly, HashSet<Module>> AssembliesModules = new();
+
+    /// <summary>
+    ///     Typy modułuów dla szybszego lookupu
+    /// </summary>
+    private static readonly Dictionary<Type, Module> Types = new();
 
     /// <summary>
     ///     Moduły tylko do oczytu
@@ -138,25 +138,6 @@ public static class ModuleManager
         return true;
     }
 
-
-    /// <summary>
-    ///     Wyłącza wszystko
-    /// </summary>
-    internal static void DisableAll()
-    {
-        UnregisterEvents();
-        DisableAllModules();
-        UnregisterAllModules();
-    }
-
-    internal static void EnableAllModules()
-    {
-        foreach (Module module in Modules)
-        {
-            TryEnableModule(module);
-        }
-    }
-
     /// <summary>
     ///     Wyłącza wszystkie danego assembly
     /// </summary>
@@ -168,14 +149,6 @@ public static class ModuleManager
         }
 
         foreach (Module module in modules)
-        {
-            module.Disable();
-        }
-    }
-
-    internal static void DisableAllModules()
-    {
-        foreach (Module module in Modules)
         {
             module.Disable();
         }
@@ -196,13 +169,6 @@ public static class ModuleManager
         }
 
         AssembliesModules.Remove(callingAssembly);
-    }
-
-    private static void UnregisterAllModules()
-    {
-        ModulesInternal.Clear();
-        Types.Clear();
-        AssembliesModules.Clear();
     }
 
     /// <summary>
@@ -250,9 +216,43 @@ public static class ModuleManager
     /// </summary>
     /// <typeparam name="T">Moduł, który sprawdzamy</typeparam>
     /// <returns></returns>
-    public static bool ModuleEnabled<T>() where T : Module
+    public static bool IsModuleEnabled<T>() where T : Module
     {
         return TryGetModule(out T? module) && module.IsActive;
+    }
+
+    public static bool TryGetModule(string name, [NotNullWhen(true)] out Module? module)
+    {
+        Module? found = ModulesInternal.FirstOrDefault(x => string.Equals(x.Name, name, StringComparison.InvariantCultureIgnoreCase));
+        module = found;
+        return found != null;
+    }
+
+
+    /// <summary>
+    ///     Wyłącza wszystko
+    /// </summary>
+    internal static void DisableAll()
+    {
+        UnregisterEvents();
+        DisableAllModules();
+        UnregisterAllModules();
+    }
+
+    internal static void EnableAllModules()
+    {
+        foreach (Module module in Modules)
+        {
+            TryEnableModule(module);
+        }
+    }
+
+    internal static void DisableAllModules()
+    {
+        foreach (Module module in Modules)
+        {
+            module.Disable();
+        }
     }
 
     /// <summary>
@@ -269,6 +269,13 @@ public static class ModuleManager
     internal static void UnregisterEvents()
     {
         ServerEvents.RoundRestarted -= OnRestartingRound;
+    }
+
+    private static void UnregisterAllModules()
+    {
+        ModulesInternal.Clear();
+        Types.Clear();
+        AssembliesModules.Clear();
     }
 
     /// <summary>

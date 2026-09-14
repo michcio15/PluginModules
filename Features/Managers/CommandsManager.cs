@@ -9,7 +9,7 @@ using System.Reflection;
 using Console = GameCore.Console;
 
 
-namespace PluginModules.Features;
+namespace PluginModules.Features.Managers;
 
 [PublicAPI]
 public class CommandsManager : ICommandsManager
@@ -24,9 +24,6 @@ public class CommandsManager : ICommandsManager
     {
         Module = module;
     }
-
-    public Module Module { get; }
-    public ModuleLog ModuleLog => Module.ModuleLog;
 
     /// <summary>
     ///     <see cref="IReadOnlyCollection{T}" /> zarejestrowanych komend <see cref="RemoteAdminCommandHandler" />
@@ -43,7 +40,7 @@ public class CommandsManager : ICommandsManager
     /// </summary>
     public IReadOnlyCollection<ICommand> ConsoleRegisteredCommands => _consoleCommands;
 
-    public void RegisterCommands()
+    public void Enable()
     {
         foreach (Type type in GetCommandTypes())
         {
@@ -60,7 +57,7 @@ public class CommandsManager : ICommandsManager
     }
 
 
-    public void UnregisterCommands()
+    public void Disable()
     {
         foreach (ICommand clientCommand in _clientCommands.ToArray())
         {
@@ -100,12 +97,6 @@ public class CommandsManager : ICommandsManager
             default:
                 return false;
         }
-    }
-
-    private IEnumerable<Type> GetCommandTypes()
-    {
-        return Module.CachedTypes.Where(static t =>
-            t.GetCustomAttribute<ModuleCommandAttribute>() != null && typeof(ICommand).IsAssignableFrom(t));
     }
 
     /// <summary>
@@ -150,5 +141,14 @@ public class CommandsManager : ICommandsManager
         }
 
         return success;
+    }
+
+    public Module Module { get; }
+    public ModuleLog ModuleLog => Module.Log;
+
+    private IEnumerable<Type> GetCommandTypes()
+    {
+        return Module.CachedTypes.Where(static t =>
+            t.GetCustomAttribute<ModuleCommandAttribute>() != null && typeof(ICommand).IsAssignableFrom(t));
     }
 }

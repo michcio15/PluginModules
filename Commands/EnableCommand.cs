@@ -34,7 +34,7 @@ public class EnableCommand : ICommand, IUsageProvider
             return false;
         }
 
-        if (!ModuleManager.TryEnableModule(module, force: true))
+        if (!ModuleManager.TryEnableModule(module, true))
         {
             response = $"Nie udało się włączyć modułu: {module.Name}";
             return false;

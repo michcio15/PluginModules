@@ -185,14 +185,16 @@ public class InfoCommand : ICommand, IUsageProvider
     }
 
     private static string FormatTypeName(Type type)
-        => TypeAliases.TryGetValue(type.Name, out string? alias) ? alias : type.Name;
+    {
+        return TypeAliases.TryGetValue(type.Name, out string? alias) ? alias : type.Name;
+    }
 
     private static void AppendConfigPath(ref StringBuilder sb, Module module, IConfigurable configurable)
     {
         /*string path =
             $"{MeteoriaRPPlugin.Instance.Prefix ?? MeteoriaRPPlugin.Instance.Name.ToLower()}/{MeteoriaRPPlugin.ModulesConfigFolderName}";*/
         string toAdd = $"{ConfigLoader.FormatFileName(module.Name)}.yml";
-        string path = "";
+        string path = string.Empty;
 
         path = configurable.Path == null ? $"{path}/{toAdd}" : $"{path}/{string.Join("/", configurable.Path)}/{toAdd}";
 

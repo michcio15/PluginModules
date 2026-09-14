@@ -9,14 +9,10 @@ namespace PluginModules.Features;
 [MeansImplicitUse(ImplicitUseKindFlags.InstantiatedNoFixedConstructorSignature, ImplicitUseTargetFlags.Itself)]
 public abstract class Module<T> : Module, IConfigurable, IReloadableModule where T : class, IModuleConfig, new()
 {
-    public T Config { get; private set; } = null!;
-
     public virtual string FileName => Name;
 
     /// <inheritdoc />
     public IConfigurableConfig BaseConfig => Config;
-
-    public override bool IsDebugEnabled => Config.DebugEnabled || base.IsDebugEnabled;
 
     /// <inheritdoc />
     public virtual string[]? Path { get; } = null;
@@ -47,4 +43,8 @@ public abstract class Module<T> : Module, IConfigurable, IReloadableModule where
         LoadConfig();
         return true;
     }
+
+    public T Config { get; private set; } = null!;
+
+    public override bool IsDebugEnabled => Config.DebugEnabled || base.IsDebugEnabled;
 }

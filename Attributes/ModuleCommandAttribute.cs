@@ -22,7 +22,7 @@ public class
             not null when commandHandler == typeof(GameConsoleCommandHandler)
                 => CommandType.Console,
 
-            _ => throw new ArgumentException("Musi być command handler")
+            _ => throw new ArgumentException("Musi być command handler"),
         };
     }
 

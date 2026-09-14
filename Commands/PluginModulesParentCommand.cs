@@ -10,6 +10,7 @@ namespace PluginModules.Commands;
 public class PluginModulesParentCommand : ParentCommand, IUsageProvider
 {
     private const string GoodColor = "#658C58";
+
     private const string BadColor = "#BF1A1A";
 
     public PluginModulesParentCommand()
@@ -17,12 +18,28 @@ public class PluginModulesParentCommand : ParentCommand, IUsageProvider
         LoadGeneratedCommands();
     }
 
+    public string[] Usage { get; } = ["list / info / enable / disable / reload"];
+
     private static Plugin ParentPlugin => PluginModules.Instance;
 
     public override string Command { get; } = "pluginmodules";
     public override string[] Aliases { get; } = ["plmod"];
     public override string Description { get; } = "Komenda od PluginModules";
-    public string[] Usage { get; } = ["list / info / enable / disable / reload"];
+
+    public static string Good(string text)
+    {
+        return $"<color={GoodColor}>{text}</color>";
+    }
+
+    public static string Bad(string text)
+    {
+        return $"<color={BadColor}>{text}</color>";
+    }
+
+    public static string Evaluate(string positive, string negative, bool check)
+    {
+        return check ? Good(positive) : Bad(negative);
+    }
 
     public sealed override void LoadGeneratedCommands()
     {
@@ -38,20 +55,5 @@ public class PluginModulesParentCommand : ParentCommand, IUsageProvider
     {
         response = $"{ParentPlugin.Name} by {ParentPlugin.Author} | Version : {ParentPlugin.Version}";
         return true;
-    }
-
-    public static string Good(string text)
-    {
-        return $"<color={GoodColor}>{text}</color>";
-    }
-
-    public static string Bad(string text)
-    {
-        return $"<color={BadColor}>{text}</color>";
-    }
-
-    public static string Evaluate(string positive, string negative, bool check)
-    {
-        return check ? Good(positive) : Bad(negative);
     }
 }

@@ -2,12 +2,7 @@
 
 namespace PluginModules.Features.Interface;
 
-public interface IHarmonyManager
+public interface IHarmonyManager : IModuleManager
 {
-    Module Module { get; }
     Harmony? Harmony { get; }
-
-    void PatchAll();
-
-    void UnpatchAll();
 }
