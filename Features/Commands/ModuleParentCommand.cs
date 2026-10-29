@@ -10,5 +10,9 @@ public abstract class ModuleParentCommand<T> : ParentCommand, IHasModule where T
     }
 
     public T Module { get; private set; } = null!;
-    public ModuleLog ModuleLog => Module.Log;
+
+    [Obsolete("Use Log instead", true)]
+    public ModuleLog ModuleLog => Log;
+
+    public ModuleLog Log => Module.Log;
 }

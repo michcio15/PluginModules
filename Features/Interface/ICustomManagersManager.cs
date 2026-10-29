@@ -2,7 +2,7 @@
 
 namespace PluginModules.Features.Interface;
 
-public interface IManagersManager : IModuleManager
+public interface ICustomManagersManager : IModuleManager
 {
     bool TryGetManager<T>([NotNullWhen(true)] out T? manager) where T : class, IModuleManager;
 

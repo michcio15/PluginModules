@@ -9,7 +9,10 @@ public interface IModuleCommand<T> : IHasModule where T : Module
 
     T Module { get; set; }
 
-    ModuleLog ModuleLog => Module.Log;
+    [Obsolete("Use Log instead", true)]
+    ModuleLog ModuleLog => Log;
+
+    ModuleLog Log => Module.Log;
 }
 
 public interface IHasModule

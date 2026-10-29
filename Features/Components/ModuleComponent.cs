@@ -9,7 +9,7 @@ namespace PluginModules.Features.Components;
 public abstract class ModuleComponent<TModule> : IModuleComponent where TModule : Module
 {
     public static TModule Module { get; internal set; } = null!;
-    public static ModuleLog ModuleLog => Module.Log;
+    public static ModuleLog Log => Module.Log;
 }
 
 /// <summary>

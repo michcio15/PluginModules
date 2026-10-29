@@ -32,7 +32,7 @@ public class HarmonyManager : IHarmonyManager
         }
 
 
-        ModuleLog.Debug(patchesFound
+        Log.Debug(patchesFound
             ? $"Załadowano patche z namespace: {Namespace}."
             : $"Nie znaleziono patchy w namespace: {Namespace}.");
     }
@@ -43,7 +43,10 @@ public class HarmonyManager : IHarmonyManager
         Harmony = null;
     }
 
-    public ModuleLog ModuleLog => Module.Log;
+    [Obsolete("Use Log instead", true)]
+    public ModuleLog ModuleLog => Log;
+
+    public ModuleLog Log => Module.Log;
     public string Namespace => Module.Namespace!;
     public string HarmonyName => $"com.module.{Module.Name}";
 
@@ -57,7 +60,7 @@ public class HarmonyManager : IHarmonyManager
         }
         catch (Exception e)
         {
-            ModuleLog.Error($"Nie udało się załadować patcha {type.Name}: {e}");
+            Log.Error($"Nie udało się załadować patcha {type.Name}: {e}");
             return false;
         }
     }

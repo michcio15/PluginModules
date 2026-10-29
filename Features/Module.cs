@@ -125,14 +125,14 @@ public abstract class Module
 
         HarmonyInstance?.UnpatchAll(HarmonyInstance.Id);
 
-        ResetRoundState();
+        //ResetRoundState();
         IsActive = false;
 
         HarmonyManager.Disable();
 
         CommandsManager.Disable();
 
-        ManagersManager.Disable();
+        CustomCustomManagersManager.Disable();
 
 
         Log.Debug($"Moduł {Name} wyłączony.");
@@ -140,21 +140,13 @@ public abstract class Module
 
     #endregion
 
-    /// <summary>
-    ///     Restart rundy
-    /// </summary>
-    public void ResetRoundState()
-    {
-        OnRoundCleanup();
-    }
-
     internal void Init(Func<bool>? debugProvider = null)
     {
         DebugProvider = debugProvider;
         Log ??= new ModuleLog(Name, Assembly.GetName().Name, () => IsDebugEnabled);
         CommandsManager = new CommandsManager(this);
         HarmonyManager = new HarmonyManager(this);
-        ManagersManager = new ManagersManager(this);
+        CustomCustomManagersManager = new CustomManagersManager(this);
     }
 
     private void SetupModuleManagers()
@@ -188,7 +180,7 @@ public abstract class Module
         {
             try
             {
-                ManagersManager.Enable();
+                CustomCustomManagersManager.Enable();
             }
             catch (Exception e)
             {
@@ -301,19 +293,19 @@ public abstract class Module
 
     #endregion
 
-    #region SubManagers
+    #region Custom Managers
 
-    public IManagersManager ManagersManager { get; set; } = null!;
+    public ICustomManagersManager CustomCustomManagersManager { get; set; } = null!;
 
     public T? GetManager<T>() where T : class, IModuleManager
     {
-        return ManagersManager.GetManager<T>();
+        return CustomCustomManagersManager.GetManager<T>();
     }
 
 
     public bool TryGetManager<T>([NotNullWhen(true)] out T? manager) where T : class, IModuleManager
     {
-        return ManagersManager.TryGetManager(out manager);
+        return CustomCustomManagersManager.TryGetManager(out manager);
     }
 
     #endregion

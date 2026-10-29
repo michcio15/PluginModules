@@ -16,7 +16,7 @@ public class DisableCommand : ICommand, IUsageProvider
 
         if (arguments.Count < 1)
         {
-            response = $"Poprawne użycie: rputils {Command} {this.DisplayCommandUsage()}";
+            response = $"Poprawne użycie: pluginmodules {Command} {this.DisplayCommandUsage()}";
             return false;
         }
 

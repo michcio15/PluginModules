@@ -279,15 +279,37 @@ public static class ModuleManager
     }
 
     /// <summary>
-    ///     Wywołuje <see cref="Module.ResetRoundState" />
+    ///     Wyłącza i włącza aktywne moduły (bez ładowania/sprawdzania configu).
+    ///     <see cref="Module.Disable" />
     /// </summary>
     private static void OnRestartingRound()
     {
-        CoreLog.Info("CLEANUP", "Restart rundy, czyszczenie modułów...");
+        CoreLog.Info("CLEANUP", "Restart rundy, restartowanie modułów...");
 
-        foreach (Module? module in Modules.Where(module => module.IsActive))
+        List<Module> active = EnabledModules.OrderByDescending(static m => m.Priority).ToList();
+
+        foreach (Module module in active)
         {
-            module.ResetRoundState();
+            try
+            {
+                module.Disable();
+            }
+            catch (Exception e)
+            {
+                CoreLog.Error("CLEANUP", $"{module.Name} crashed while disabling: {e}");
+            }
+        }
+
+        foreach (Module module in active)
+        {
+            try
+            {
+                module.Enable();
+            }
+            catch (Exception e)
+            {
+                CoreLog.Error("CLEANUP", $"{module.Name} crashed while enabling: {e}");
+            }
         }
     }
 

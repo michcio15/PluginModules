@@ -19,11 +19,14 @@ public class PluginModules : Plugin<Config>
     public override void Enable()
     {
         Instance = this;
+        Config = base.Config!;
         ModuleManager.RegisterEvents();
     }
 
     public override void Disable()
     {
+        Instance = null!;
+        Config = null!;
         ModuleManager.DisableAll();
     }
 }

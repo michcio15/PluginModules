@@ -44,11 +44,11 @@ public class CommandsManager : ICommandsManager
     {
         foreach (Type type in GetCommandTypes())
         {
-            ModuleLog.Debug($"Registering command {type.Name}");
+            Log.Debug($"Registering command {type.Name}");
             ModuleCommandAttribute attr = type.GetCustomAttribute<ModuleCommandAttribute>();
             if (Activator.CreateInstance(type) is not ICommand command)
             {
-                ModuleLog.Error($"Typ {type.Name} nie implementuje ICommand");
+                Log.Error($"Typ {type.Name} nie implementuje ICommand");
                 continue;
             }
 
@@ -63,21 +63,21 @@ public class CommandsManager : ICommandsManager
         {
             _clientCommands.Remove(clientCommand);
             QueryProcessor.DotCommandHandler.UnregisterCommand(clientCommand);
-            ModuleLog.Debug($"Unregistered client command {clientCommand.Command}");
+            Log.Debug($"Unregistered client command {clientCommand.Command}");
         }
 
         foreach (ICommand remoteAdminCommand in _remoteAdminCommands.ToArray())
         {
             _remoteAdminCommands.Remove(remoteAdminCommand);
             CommandProcessor.RemoteAdminCommandHandler.UnregisterCommand(remoteAdminCommand);
-            ModuleLog.Debug($"Unregistered remote admin command {remoteAdminCommand.Command}");
+            Log.Debug($"Unregistered remote admin command {remoteAdminCommand.Command}");
         }
 
         foreach (ICommand consoleCommand in _consoleCommands.ToArray())
         {
             _consoleCommands.Remove(consoleCommand);
             Console.ConsoleCommandHandler.UnregisterCommand(consoleCommand);
-            ModuleLog.Debug($"Unregistered console command {consoleCommand.Command}");
+            Log.Debug($"Unregistered console command {consoleCommand.Command}");
         }
     }
 
@@ -130,7 +130,7 @@ public class CommandsManager : ICommandsManager
         }
         catch (Exception e)
         {
-            ModuleLog.Error($"Nie udało się zarejestrować {command.Command} stacktrace zjebania {e.Message}");
+            Log.Error($"Nie udało się zarejestrować {command.Command} stacktrace zjebania {e.Message}");
             success = false;
             return success;
         }
@@ -144,7 +144,10 @@ public class CommandsManager : ICommandsManager
     }
 
     public Module Module { get; }
-    public ModuleLog ModuleLog => Module.Log;
+    [Obsolete("Use Log instead", true)]
+    public ModuleLog ModuleLog => Log;
+
+    public ModuleLog Log => Module.Log;
 
     private IEnumerable<Type> GetCommandTypes()
     {

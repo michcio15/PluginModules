@@ -4,9 +4,9 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace PluginModules.Features.Managers;
 
-public class ManagersManager : IManagersManager
+public class CustomManagersManager : ICustomManagersManager
 {
-    public ManagersManager(Module module)
+    public CustomManagersManager(Module module)
     {
         Module = module;
         Managers = new List<IModuleManager>(Module.ManagersToRegister.Length);

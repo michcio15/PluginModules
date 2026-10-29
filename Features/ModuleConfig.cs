@@ -1,6 +1,7 @@
 using FajneConfigurables;
 using FajneConfigurables.Interfaces;
 using JetBrains.Annotations;
+using PluginModules.Features.Attributes;
 using PluginModules.Interfaces;
 
 namespace PluginModules.Features;
@@ -29,7 +30,9 @@ public abstract class Module<T> : Module, IConfigurable, IReloadableModule where
 
     public void LoadConfig()
     {
-        Config = ConfigLoader.Load<T>(ConfigPath);
+        Config = PluginModules.Config.DontCreateConfigFilesAttributeEnabled && GetType().IsDefined(typeof(DontCreateConfigFile), true)
+            ? new T()
+            : ConfigLoader.Load<T>(ConfigPath);
     }
 
     public void UnloadConfig()
@@ -46,5 +49,5 @@ public abstract class Module<T> : Module, IConfigurable, IReloadableModule where
 
     public T Config { get; private set; } = null!;
 
-    public override bool IsDebugEnabled => Config.DebugEnabled || base.IsDebugEnabled;
+    public override bool IsDebugEnabled => Config?.DebugEnabled == true || base.IsDebugEnabled;
 }

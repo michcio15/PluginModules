@@ -75,6 +75,20 @@ public class InfoCommand : ICommand, IUsageProvider
         sb.AppendLine($"- Priorytet : {module.Priority} ({(int)module.Priority})");
         sb.AppendLine($"- Assembly : {module.Assembly.GetName().Name}");
         sb.AppendLine($"- Debug : {EnabledOrNo(module.IsDebugEnabled)}");
+        AppendModuleCommands(sb, module);
+
+        AppendHarmony(ref sb, module);
+        if (module is IConfigurable configurable)
+        {
+            AppendConfigPath(ref sb, module, configurable);
+        }
+
+
+        return StringBuilderPool.Shared.ToStringReturn(sb);
+    }
+
+    private static void AppendModuleCommands(StringBuilder sb, Module module)
+    {
         sb.Append("- Komendy: ");
 
         ICommandsManager commandsManager = module.CommandsManager;
@@ -92,15 +106,6 @@ public class InfoCommand : ICommand, IUsageProvider
         {
             sb.AppendLine(PluginModulesParentCommand.Bad("Brak"));
         }
-
-        AppendHarmony(ref sb, module);
-        if (module is IConfigurable configurable)
-        {
-            AppendConfigPath(ref sb, module, configurable);
-        }
-
-
-        return StringBuilderPool.Shared.ToStringReturn(sb);
     }
 
     private static string EnabledOrNo(bool value)
